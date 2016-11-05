@@ -604,6 +604,7 @@ context managers
 
 ``` {.python}
                  # decorators
+```
 
 -----------------------------
 
