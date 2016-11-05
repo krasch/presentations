@@ -1,0 +1,40 @@
+\usepackage{fontspec}
+\usepackage{ragged2e}
+\usepackage{tikz}
+
+
+% color for all the text
+\definecolor{nearlyblack}{RGB}{49, 49, 49 }
+
+
+% no arrows
+\setbeamertemplate{navigation symbols}{} 
+
+% add slide numbers
+\setbeamertemplate{footline}{%
+    \raisebox{5pt}{\makebox[\paperwidth]{\hfill\makebox[20pt]{\color{nearlyblack}
+\scriptsize\insertframenumber}}}\hspace*{5pt}}
+
+% nicer font
+\usefonttheme{professionalfonts}
+\setmainfont{Consolas}
+
+% everything same colour
+\setbeamercolor{normal text}{fg=nearlyblack}
+\setbeamercolor{titlelike}{fg=nearlyblack}
+\setbeamercolor{block title}{fg=nearlyblack}
+\setbeamercolor{itemize item}{fg=nearlyblack}
+
+% block title same size as slide title
+\setbeamerfont{block title}{size=\Large}
+\setbeamerfont{titlelike}{size=\Large}
+
+
+% no stupid bullet points
+\setbeamertemplate{itemize items}{--}
+
+\setbeamersize{text margin left=0.5cm} 
+
+
+
+
