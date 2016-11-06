@@ -1,6 +1,6 @@
 % generators, context managers, decorators
-% krasch
-% November 8th, 2016; pyladies Berlin
+% krasch | k@krasch.io
+% November 8th, 2016 | pyladies Berlin
 
 [comment]: # pandoc -t beamer --latex-engine=xelatex  -H header.tex slides.md -o slides.pdf 
 
