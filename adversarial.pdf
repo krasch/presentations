@@ -1,0 +1,617 @@
+
+\thispagestyle{empty}
+
+\centeredtext{Fooling neural networks
+
+\vspace{0.5cm}
+
+Berlin ML meetup | January 8th, 2018
+
+\vspace{0.5cm}
+
+Katharina Rasch | kat@krasch.io $\;\,$
+}
+
+----------------------------
+
+\thispagestyle{empty}
+\centering
+Katharina Rasch
+
+kat@krasch.io 
+
+\url{https://github.com/krasch}
+
+\url{https://twitter.com/krasch_io}
+
+\vspace{1cm}
+
+PhD computer science
+
+Previously: Data science / computer vision @ zalando
+
+Now: Freelance data science + teaching
+
+\addtocounter{framenumber}{-2}
+----------------------------
+
+
+# Today
+
+\centeredfig{11.5cm}{fig/panda.png}
+\footer{\cite{goodfellow15}
+
+(first identified in \cite{szegedy13}})
+
+----------------------------
+
+# Today
+
+* Digging into the Fast Gradient Sign Method
+* Explanations?
+* Defenses?
+* Physical manifestations
+
+--------------------------
+
+# Image classifier should tolerate small perturbations
+
+\vspace{1cm}
+
+\begin{tabular}{ll}
+  Original image & $x$ \\
+  Perturbation & $\eta$ \\
+  Perturbed image & $\tilde{x} = x + \eta$ \\
+\end{tabular} 
+
+\vspace{0.5cm}
+$\;$ For small $\eta$ expect classifier output $f(x) = f(\tilde{x})$
+
+\vspace{1cm}
+
+\footer{\cite{goodfellow15}}
+
+---------------------------
+
+
+# Image classifier should tolerate small perturbations
+
+\vspace{1cm}
+
+\begin{tabular}{ll}
+  Original image & $x$ \\
+  Perturbation & $\eta$ \\
+  Perturbed image & $\tilde{x} = x + \eta$ \\
+\end{tabular} 
+
+\vspace{0.5cm}
+$\;$ For small $\eta$ expect classifier output $f(x) = f(\tilde{x})$
+
+\vspace{1cm}
+
+$\;$ Every pixel should change at most $\pm\epsilon$ $\rightarrow \left\lVert\eta\right\rVert_\infty \leq \epsilon$ 
+
+$\;\;(\left\lVert\eta\right\rVert_\infty = max(|\eta|))$
+
+\vspace{0.5cm}
+$\;\;$for pixel values in [0,1]: $1/256 = 0.004$
+
+\footer{\cite{goodfellow15}}
+
+
+---------------------------
+
+# Generating adversarial examples for a linear classifier
+
+\begin{columns}
+    \begin{column}{0.4\textwidth}
+       \vspace{2cm}
+       \includegraphics[width=5cm]{fig/linear_no.svg.png}
+    \end{column}
+    \hfill
+    \begin{column}{0.4\textwidth}
+    \end{column}
+\end{columns}
+
+\footer{Based on \cite{goodfellow15}}
+
+
+---------------------------
+
+# Generating adversarial examples for a linear classifier
+
+\begin{columns}
+    \begin{column}{0.4\textwidth}
+       \vspace{2cm}
+       \includegraphics[width=5cm]{fig/linear_no1.svg.png}
+    \end{column}
+    \hfill
+    \begin{column}{0.4\textwidth}
+    \end{column}
+\end{columns}
+
+\footer{Based on \cite{goodfellow15}}
+
+
+---------------------------
+
+# Generating adversarial examples for a linear classifier
+
+\begin{columns}
+    \begin{column}{0.4\textwidth}
+       \vspace{2cm}
+       \includegraphics[width=5cm]{fig/linear.svg.png}
+    \end{column}
+    \hfill
+    \begin{column}{0.4\textwidth}
+    \end{column}
+\end{columns}
+
+\footer{Based on \cite{goodfellow15}}
+
+---------------------------
+
+# Generating adversarial examples for a linear classifier
+
+\begin{columns}
+    \begin{column}{0.4\textwidth}
+       \vspace{2cm}
+       \includegraphics[width=5cm]{fig/linear.svg.png}
+    \end{column}
+    \hfill
+    \begin{column}{0.4\textwidth}
+        \centering Propose 
+        \begin{align*}
+        \eta = \epsilon*sign(w) \\
+        \end{align*}
+    \end{column}
+\end{columns}
+
+\footer{Based on \cite{goodfellow15}}
+
+---------------------------
+
+# Generating adversarial examples for a linear classifier
+
+\begin{columns}
+    \begin{column}{0.4\textwidth}
+       \vspace{2cm}
+       \includegraphics[width=5cm]{fig/linear.svg.png}
+    \end{column}
+    \hfill
+    \begin{column}{0.4\textwidth}
+        \centering Propose 
+        \begin{align*}
+        \eta = \epsilon*sign(w) \\
+        \rightarrow \eta=\begin{pmatrix}\pm\epsilon\\\pm\epsilon\\\pm\epsilon\\\ldots\end{pmatrix}
+        \end{align*}
+    \end{column}
+\end{columns}
+
+\footer{Based on \cite{goodfellow15}}
+
+--------------------------
+
+# In code
+
+``` {.python}
+
+pixel_min, pixel_max = 0.0, 1.0
+
+def create_adversarial(image, original_class, epsilon):
+    perturb = epsilon * np.sign(weights)
+    if original_class == 0:
+        adversarial = image + perturb
+    else:
+        adversarial = image - perturb
+    return np.clip(adversarial, pixel_min, pixel_max)
+```
+
+
+---------------------------
+
+# Let's try it out!
+
+\centering
+\includegraphics[width=5cm]{fig/task_3vs7.png}
+
+Trained logistic regression model with val accuracy ~ 97\% 
+
+\vspace{1.5cm}
+
+\includegraphics[width=2cm]{fig/weights.png}
+
+Visualisation of model weights
+
+---------------------------
+
+# Turning 3 into 7
+
+\centeredfig{7cm}{fig/3to7.png}
+
+---------------------------
+
+# Turning 7 into 3
+
+\centeredfig{7cm}{fig/7to3.png}
+
+---------------------------
+
+# How about non-linear models?
+
+\begin{tabular}{ll}
+
+Hypothesis: & non-linear neural networks still designed to be very linear \\
+            & (for easier optimisation) \\
+            & $\rightarrow$ won't be able to resist linear adversarial perturbation 
+\end{tabular}
+
+\vspace{1cm}
+
+\begin{center}
+Fast gradient sign method
+
+$\eta =  \epsilon*\mathit{sign}(\triangledown_x J(\theta, x, y))$
+
+\vspace{0.3cm}
+
+\begin{scriptsize}
+(with original image $x$, original label $y$, model parameters $\theta$, cost function $J(\theta,x,y)$)
+\end{scriptsize}
+\end{center}
+
+\vspace{1cm}
+
+\cite{goodfellow15}
+
+--------------------------
+
+# In code
+
+``` {.python}
+def FGSM(image, original_class, epsilon):
+    perturb = epsilon * np.sign(grad(image, original_class))
+    adversarial = image + perturb
+    return np.clip(adversarial, pixel_min, pixel_max)
+
+```
+
+\pause
+
+``` {.python}
+def targeted_FGSM(image, target_class, epsilon):
+    perturb = epsilon * np.sign(grad(image, target_class))
+    adversarial = image - perturb
+    return np.clip(adversarial, pixel_min, pixel_max)
+```
+
+\pause
+
+``` {.python}
+def iterative_FGSM(image, original_class, epsilon, steps):
+    epsilon = epsilon / steps
+    adversarial = image
+    for i in range(steps):
+        adversarial = FGSM(adversarial, original_class, epsilon)
+    return adversarial
+```
+
+--------------------------
+
+# Let's try it out!
+
+* MNIST: CNN with 2 convolutional + 2 fully connected layers 
+    * Validation accuracy ~ 98%
+* ImageNet: Pre-trained MobileNet 
+    * Slightly worse accuracy than VGG16 but much fewer parameters
+
+---------------------------
+
+# Targeted attack: turning 5 into 6
+
+\centeredfig{7cm}{fig/5to6.png}
+
+---------------------------
+
+# Targeted attack: turning 0 into 1
+
+\centeredfig{7cm}{fig/0to1.png}
+
+---------------------------
+
+# How large epsilon is needed for attack to succeed?
+
+\centeredfig{9.5cm}{fig/pairs.png}
+
+--------------------------
+
+# Targeted attack: turning rubbish into numbers
+
+\centeredfig{7cm}{fig/rubbish.png}
+
+\vskip0pt plus 1filll
+``` {.python}
+rubbish = np.random.uniform(low=0.0, high=1.0, size=(28*28))
+```
+---------------------------
+
+# Untargeted attack: turning 0 into something
+
+\centeredfig{7cm}{fig/untargeted0.png}
+
+--------------------------
+
+# Where do untargeted attacks lead?
+
+\centeredfig{9.5cm}{fig/untargeted_pairs.png}
+
+------------------------
+
+# Iterative targeted attack: turning a zebra into a toaster
+
+\centeredfig{6.5cm}{fig/zebraToToaster.png}
+
+\footer{\scriptsize{Zebra source: Rui Ornelas, \url{https://www.flickr.com/photos/fotos_dos_ornelas}}}
+
+------------------------
+
+# Iterative targeted attack: turning a zebra into a toaster
+
+\begin{columns}
+    \begin{column}{0.4\textwidth}
+       Original
+       \includegraphics[width=5cm]{fig/zebra_square.jpg}
+    \end{column}
+    \hfill
+    \begin{column}{0.4\textwidth}
+       Adversarial with $\epsilon=0.012$
+       \includegraphics[width=5cm]{fig/zebra_adversarial.jpg}
+    \end{column}
+\end{columns}
+
+------------------------
+
+# Iterative targeted attack: turning a polar bear into a sombrero
+
+\centeredfig{6.5cm}{fig/bearToSombrero.png}
+
+\footer{\scriptsize{Polar bear source: Alan Wilson, \url{http://www.naturespicsonline.com}}}
+
+------------------------
+
+# FGSM is of course not the only method
+
+In particular, have a look at: \cite{deepfool}
+
+\vspace{1cm}
+
+Many different ones are implemented in \url{https://github.com/bethgelab/foolbox}
+
+------------------------
+
+\centeredfig{7.5cm}{fig/benchmark.png}
+
+\vskip0pt plus 1filll
+\url{https://robust.vision/benchmark/leaderboard/}
+
+------------------------
+
+# Adversarial examples are transferable -> enables black box attacks
+
+\centeredfig{12cm}{fig/transferable.png}
+\footer{\cite{transferable}}
+
+------------------------
+
+# Generating universal perturbations
+
+\centeredfig{6cm}{fig/universal_how.png}
+\footer{\cite{universal}}
+
+------------------------
+
+# Universal perturbations are trippy
+
+\centeredfig{11cm}{fig/universal.png}
+\footer{\cite{universal}}
+
+------------------------
+
+# Universal perturbations are also transferable
+
+\centeredfig{12cm}{fig/universal_transferable.png}
+\footer{\cite{universal}}
+
+-----------------------
+
+# Universal attacks lead to common classes
+
+\centeredfig{12cm}{fig/universal_where.png}
+\footer{\cite{universal}}
+
+------------------------
+
+\centeredtext{Explanations?}
+
+-----------------------
+
+# Voices against the "Networks are too linear" explanation
+
+\cite{tilting}
+
+\vspace{1cm}
+
+\cite{representations}
+
+------------------------
+
+# Adversarial examples live in pockets in the input space
+
+"To escape the adversarial pockets completely we have to add a noise considerably stronger than the original distortion
+used to reach them in the first place: adversarial regions are not isolated."
+
+\vspace{1cm}
+
+\cite{tabacof16}
+
+-----------------------
+
+# Other types of models are susceptible as well (results on MNIST)
+
+\centeredfig{6cm}{fig/others.png}
+
+\footer{\cite{others}}
+
+
+-----------------------
+
+\centeredtext{Defenses?}
+
+----------------------
+
+# Augment training data with adversarial examples
+
+\centeredfig{12cm}{fig/training.png}
+
+\footer{\cite{szegedy13}
+
+\cite{scale}}
+
+----------------------
+
+# Adversarial training protects against one-step methods (e.g. FGSM)
+
+\centeredfig{9cm}{fig/training1.png}
+\footer{Plotting results from \cite{scale}}
+
+----------------------
+
+# Adversarial training fails against iterative methods (e.g. Iterative Least Likely FGSM)
+
+\centeredfig{9cm}{fig/training2.png}
+\footer{Plotting results from \cite{scale}}
+
+
+----------------------
+
+# JPG compression destroys smaller perturbations
+
+\begin{columns}
+    \begin{column}{0.42\textwidth}
+       $\epsilon=0.012 + JPG \rightarrow$ 'zebra'
+       \includegraphics[width=5cm]{fig/zebra_adversarial.jpg}
+    \end{column}
+    \hfill
+    \begin{column}{0.42\textwidth}
+       $\epsilon=0.1 + JPG \rightarrow$ 'toaster'
+       \includegraphics[width=5cm]{fig/zebra_adversarial2.jpg}
+    \end{column}
+\end{columns}
+\vspace{1cm}
+\cite{jpg}
+
+
+----------------------
+
+# Detecting adversarial examples
+
+Many methods proposed, e.g. using detector network before classification network
+
+\vspace{1cm}
+
+...
+
+\vspace{1cm}
+\cite{detect} 
+
+\pause
+(also "offer a note of caution about evaluating solely
+on MNIST; it appears that MNIST has somewhat different
+security properties than CIFAR")
+
+-----------------------
+
+\centeredtext{Physical manifestations}
+
+
+------------------------
+
+# Impersonator glasses
+
+\centeredfig{11cm}{fig/glasses.png}
+\footer{\cite{glasses}}
+
+------------------------
+
+# Adversarial patch
+
+\centeredfig{10cm}{fig/patch.png}
+\footer{\cite{patch}}
+
+------------------------
+
+# Let's try it out!
+
+\scriptsize
+\begin{columns}
+    \begin{column}{0.3\textwidth}
+       toaster (0.97) 
+
+       pencil sharpener (0.007)
+
+       soap dispenser (0.004)
+       \includegraphics[width=3cm]{fig/patch_kat.png}
+    \end{column}
+    \hfill
+    \begin{column}{0.3\textwidth}
+       cockroach (0.15)
+       
+       loafer (0.13)
+       
+       cowboy boot (0.03)
+
+       \includegraphics[width=3cm]{fig/boot_kat.png}
+    \end{column}
+    \hfill
+    \begin{column}{0.3\textwidth}
+
+	toaster (0.74)
+    
+        soap dispenser (0.03)
+     
+        punching bag (0.02) 
+
+       \includegraphics[width=3cm]{fig/boot_patch_kat.png}
+    \end{column}
+\end{columns}
+
+------------------------
+
+# Adversarial turtle
+
+\centeredfig{12cm}{fig/turtle.png}
+\footer{\cite{turtle}, \url{https://youtu.be/YXy6oX1iNoA}}
+
+------------------------
+
+
+# Take home
+
+* Generating adversarial examples is easy
+* Understanding why they exist is hard
+* Defenses are mostly band-aids and quickly broken
+* Opportunities ("Probleme sind nur dornige Chancen"?)
+
+------------------------
+
+# References {.allowframebreaks}
+
+\printbibliography
+
+
+
+
+
+
+
+
